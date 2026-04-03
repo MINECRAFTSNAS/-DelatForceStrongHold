@@ -24,4 +24,3 @@
 ## 依赖
 - Minecraft: 1.20.1
 - Forge: 47.4.18
-- GD656killicon(可选)

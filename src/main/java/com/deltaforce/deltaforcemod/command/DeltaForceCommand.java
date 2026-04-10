@@ -67,6 +67,17 @@ public class DeltaForceCommand {
                                 )
                         )
                 )
+                .then(Commands.literal("nametag")
+                        .then(Commands.literal("always")
+                                .executes(DeltaForceCommand::executeNametagAlways)
+                        )
+                        .then(Commands.literal("hide")
+                                .executes(DeltaForceCommand::executeNametagHide)
+                        )
+                        .then(Commands.literal("never")
+                                .executes(DeltaForceCommand::executeNametagNever)
+                        )
+                )
                 // 游戏控制命令
                 .then(Commands.literal("start")
                         .executes(DeltaForceCommand::executeStart)
@@ -101,7 +112,7 @@ public class DeltaForceCommand {
                 // 队伍管理命令
                 .then(Commands.literal("team")
                         .then(Commands.literal("set")
-                                .then(Commands.argument("player", EntityArgument.player())
+                                .then(Commands.argument("player", EntityArgument.players())
                                         .then(Commands.argument("team", StringArgumentType.word())
                                                 .suggests((context, builder) -> {
                                                     builder.suggest("GTI");
@@ -1009,6 +1020,33 @@ public class DeltaForceCommand {
     private static int executeDebugLogOff(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         ModLogger.setDebugMode(false);
         ModLogger.sendPlayerSuccess(context.getSource().getPlayerOrException(), "调试日志已关闭");
+        return 1;
+    }
+
+    private static int executeNametagAlways(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        ServerPlayer player = context.getSource().getPlayerOrException();
+        NametagVisibility.setPlayerRule(player.getUUID(), NametagVisibility.Rule.ALWAYS);
+        context.getSource().sendSuccess(() ->
+                        Component.literal("§a[三角洲系统] 名字标签已设置为: 总是显示"),
+                true);
+        return 1;
+    }
+
+    private static int executeNametagHide(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        ServerPlayer player = context.getSource().getPlayerOrException();
+        NametagVisibility.setPlayerRule(player.getUUID(), NametagVisibility.Rule.HIDE_FOR_OTHER_TEAMS);
+        context.getSource().sendSuccess(() ->
+                        Component.literal("§a[三角洲系统] 名字标签已设置为: 对其他队伍隐藏"),
+                true);
+        return 1;
+    }
+
+    private static int executeNametagNever(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        ServerPlayer player = context.getSource().getPlayerOrException();
+        NametagVisibility.setPlayerRule(player.getUUID(), NametagVisibility.Rule.NEVER);
+        context.getSource().sendSuccess(() ->
+                        Component.literal("§a[三角洲系统] 名字标签已设置为: 永远不显示"),
+                true);
         return 1;
     }
 }

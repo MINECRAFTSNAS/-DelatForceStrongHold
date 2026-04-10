@@ -428,10 +428,14 @@ public class DeltaForceMod {
     public void onPlayerLogin(PlayerEvent.PlayerLoggedInEvent event) {
         if (event.getEntity() instanceof ServerPlayer) {
             ServerPlayer player = (ServerPlayer) event.getEntity();
+
+            TeamManager.getInstance().syncTeamDataToPlayer(player);
+            TeamManager.getInstance().syncTeamDataToAll();
+
+
             player.sendSystemMessage(
                     Component.literal("§e输入 §f/deltaforcesystem help §e查看所有命令")
             );
-            TeamManager.getInstance().syncTeamDataToPlayer(player);
 
             TeamManager.Team savedTeam = TeamManager.getInstance().getPlayerTeam(player);
             if (savedTeam != TeamManager.Team.NONE) {
@@ -460,34 +464,6 @@ public class DeltaForceMod {
         DeltaForceCommand.register(event.getDispatcher());
     }
 
-    // ========== 客户端名字颜色 ==========
-    @Mod.EventBusSubscriber(modid = MOD_ID, value = Dist.CLIENT)
-    public static class ClientEvents {
-
-        @SubscribeEvent
-        public static void onRenderNameTag(RenderNameTagEvent event) {
-            if (!(event.getEntity() instanceof Player)) {
-                return;
-            }
-
-            Player player = (Player) event.getEntity();
-            Minecraft mc = Minecraft.getInstance();
-
-            // 不处理自己的名字
-            if (player == mc.player) {
-                return;
-            }
-
-            // 从客户端缓存获取队伍信息（而不是直接调用服务端方法）
-            TeamManager.Team team = ClientTeamData.getTeam(player.getUUID());
-
-            if (team == TeamManager.Team.GTI) {
-                event.setContent(Component.literal(player.getName().getString()).withStyle(ChatFormatting.RED));
-            } else if (team == TeamManager.Team.HAAVK) {
-                event.setContent(Component.literal(player.getName().getString()).withStyle(ChatFormatting.BLUE));
-            }
-        }
-    }
 
     // ========== 窗口标题修改 ==========
     @Mod.EventBusSubscriber(modid = MOD_ID, value = Dist.CLIENT)

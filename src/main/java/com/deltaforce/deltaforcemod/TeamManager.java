@@ -88,33 +88,44 @@ public class TeamManager {
 
             syncTeamDataToAll();
         }
+
+        if (player.getServer() != null) {
+            for (ServerPlayer onlinePlayer : player.getServer().getPlayerList().getPlayers()) {
+                syncTeamDataToPlayer(onlinePlayer);
+            }
+        }
     }
 
-    // 同步所有队伍数据给所有玩家
+    // 同步所有队伍数据给所有客户端
     public void syncTeamDataToAll() {
         MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
-        if (server == null) return;
+        if (server == null) {
+            DeltaForceMod.LOGGER.warn("syncTeamDataToAll: server is null");
+            return;
+        }
 
-        // 把所有队伍数据打包
         Map<UUID, String> teamData = new HashMap<>();
         for (Map.Entry<UUID, Team> entry : playerTeams.entrySet()) {
             teamData.put(entry.getKey(), entry.getValue().name());
         }
 
-        SyncTeamPacket packet = new SyncTeamPacket(teamData);
+        DeltaForceMod.LOGGER.info("同步队伍数据给所有客户端，数据量: {}", teamData.size());
 
-        // 发送给每个在线玩家
+        SyncTeamPacket packet = new SyncTeamPacket(teamData);
         for (ServerPlayer player : server.getPlayerList().getPlayers()) {
             DeltaForceMod.CHANNEL.send(PacketDistributor.PLAYER.with(() -> player), packet);
         }
     }
 
-    // 同步给单个玩家（新登录时）
+    // 同步给单个玩家
     public void syncTeamDataToPlayer(ServerPlayer targetPlayer) {
         Map<UUID, String> teamData = new HashMap<>();
         for (Map.Entry<UUID, Team> entry : playerTeams.entrySet()) {
             teamData.put(entry.getKey(), entry.getValue().name());
         }
+
+        DeltaForceMod.LOGGER.info("同步队伍数据给玩家 {}，数据量: {}", targetPlayer.getName().getString(), teamData.size());
+
         SyncTeamPacket packet = new SyncTeamPacket(teamData);
         DeltaForceMod.CHANNEL.send(PacketDistributor.PLAYER.with(() -> targetPlayer), packet);
     }
@@ -152,5 +163,25 @@ public class TeamManager {
     // 设置队伍数据（用于加载）
     public void setTeamData(UUID uuid, Team team) {
         playerTeams.put(uuid, team);
+    }
+
+    public Team getPlayerTeamClient(Player player) {
+        return playerTeams.getOrDefault(player.getUUID(), Team.NONE);
+    }
+
+    public void forceSyncAll() {
+        MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
+        if (server == null) return;
+
+        Map<UUID, String> teamData = new HashMap<>();
+        for (Map.Entry<UUID, Team> entry : playerTeams.entrySet()) {
+            teamData.put(entry.getKey(), entry.getValue().name());
+        }
+
+        SyncTeamPacket packet = new SyncTeamPacket(teamData);
+        for (ServerPlayer player : server.getPlayerList().getPlayers()) {
+            DeltaForceMod.CHANNEL.send(PacketDistributor.PLAYER.with(() -> player), packet);
+        }
+        DeltaForceMod.LOGGER.info("已强制同步队伍数据给所有客户端");
     }
 }

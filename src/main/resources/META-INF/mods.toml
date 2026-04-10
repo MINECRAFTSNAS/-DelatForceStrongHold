@@ -5,12 +5,13 @@ loaderVersion="${loader_version_range}"
 
 license="MIT"
 
+logoFile="deltaforce.png"
+
 [[mods]]
 modId="deltaforcemod"
 version="1.0.0"
 displayName="三角洲行动 | 全面战场-占领据点"
 authors="MINECRAFT_SNAS"
-logoFile="deltaforce.png"
 description='''
 三角洲行动兵力,据点系统模组
 '''

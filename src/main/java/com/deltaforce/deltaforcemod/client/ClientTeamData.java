@@ -1,5 +1,6 @@
 package com.deltaforce.deltaforcemod.client;
 
+import com.deltaforce.deltaforcemod.DeltaForceMod;
 import com.deltaforce.deltaforcemod.TeamManager;
 
 import java.util.HashMap;
@@ -7,25 +8,28 @@ import java.util.Map;
 import java.util.UUID;
 
 public class ClientTeamData {
-    // 存储每个玩家的队伍信息 (UUID -> 队伍)
     private static final Map<UUID, TeamManager.Team> teamCache = new HashMap<>();
 
-    // 接收服务端发来的队伍数据
     public static void receiveTeamData(Map<UUID, String> teamData) {
         teamCache.clear();
+        DeltaForceMod.LOGGER.info("ClientTeamData 接收数据: {}", teamData.size());
         for (Map.Entry<UUID, String> entry : teamData.entrySet()) {
             try {
-                teamCache.put(entry.getKey(), TeamManager.Team.valueOf(entry.getValue()));
-            } catch (Exception ignored) {}
+                TeamManager.Team team = TeamManager.Team.valueOf(entry.getValue());
+                teamCache.put(entry.getKey(), team);
+                DeltaForceMod.LOGGER.info("  玩家 {} 队伍: {}", entry.getKey(), team);
+            } catch (Exception e) {
+                DeltaForceMod.LOGGER.error("解析队伍数据失败: {}", entry.getValue());
+            }
         }
     }
 
-    // 获取某个玩家的队伍
     public static TeamManager.Team getTeam(UUID uuid) {
-        return teamCache.getOrDefault(uuid, TeamManager.Team.NONE);
+        TeamManager.Team team = teamCache.getOrDefault(uuid, TeamManager.Team.NONE);
+        DeltaForceMod.LOGGER.debug("获取玩家 {} 队伍: {}", uuid, team);
+        return team;
     }
 
-    // 清空缓存（玩家退出时）
     public static void clear() {
         teamCache.clear();
     }

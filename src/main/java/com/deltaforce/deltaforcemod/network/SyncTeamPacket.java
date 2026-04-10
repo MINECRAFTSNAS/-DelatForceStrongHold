@@ -1,5 +1,6 @@
 package com.deltaforce.deltaforcemod.network;
 
+import com.deltaforce.deltaforcemod.DeltaForceMod;
 import com.deltaforce.deltaforcemod.TeamManager;
 import com.deltaforce.deltaforcemod.client.ClientTeamData;
 import net.minecraft.network.FriendlyByteBuf;
@@ -17,7 +18,6 @@ public class SyncTeamPacket {
         this.teamData = teamData;
     }
 
-    // 编码：将数据写入网络包
     public static void encode(SyncTeamPacket packet, FriendlyByteBuf buf) {
         buf.writeInt(packet.teamData.size());
         for (Map.Entry<UUID, String> entry : packet.teamData.entrySet()) {
@@ -26,7 +26,6 @@ public class SyncTeamPacket {
         }
     }
 
-    // 解码：从网络包读取数据
     public static SyncTeamPacket decode(FriendlyByteBuf buf) {
         int size = buf.readInt();
         Map<UUID, String> teamData = new HashMap<>();
@@ -38,9 +37,9 @@ public class SyncTeamPacket {
         return new SyncTeamPacket(teamData);
     }
 
-    // 处理：客户端收到数据后更新缓存
     public static void handle(SyncTeamPacket packet, Supplier<NetworkEvent.Context> context) {
         context.get().enqueueWork(() -> {
+            DeltaForceMod.LOGGER.info("客户端收到队伍同步包，数据量: {}", packet.teamData.size());
             ClientTeamData.receiveTeamData(packet.teamData);
         });
         context.get().setPacketHandled(true);
